@@ -1,0 +1,18 @@
+---
+# defaults file for parser-address
+#
+nyc_app_id: DEADBEEF
+nyc_app_key: 11111111111111111111111111111111
+
+home_parsers: /home/vagrant/dev/parsers
+parser_name: addressparser
+
+# server_name: vagrant-ubuntu-trusty-64
+server_name: "{{ ansible_hostname }}"
+app_port: 5000
+
+sock_name: "{{ home_parsers }}/{{ parser_name }}/{{ parser_name }}.sock"
+
+
+user: vagrant
+project_url: https://github.com/CityOfNewYork/addressparser.git

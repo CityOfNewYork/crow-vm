@@ -1,0 +1,18 @@
+#!/bin/bash
+
+{{ gf_admin_cmd }} start-domain
+{{ gf_admin_cmd }} set --user admin server.jms-service.jms-host.default_JMS_host.admin-password={{ gf_admin_password }}
+
+{{ gf_admin_cmd }} --passwordfile {{ gf_tmp_pwfile }} --user admin change-admin-password
+{{ gf_admin_cmd }} restart-domain
+
+{{ gf_admin_cmd }} {{ gf_admin_credentials }} enable-secure-admin
+{{ gf_admin_cmd }} restart-domain
+
+# deploy war file
+yes y | {{ gf_admin_cmd }} {{ gf_admin_credentials }} deploy {{ gf_demo_app }}
+
+stop domain so service can be started
+{{ gf_admin_cmd }} stop-domain
+
+rm -f {{ gf_tmp_pwfile }}

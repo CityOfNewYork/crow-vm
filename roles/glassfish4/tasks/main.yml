@@ -1,0 +1,49 @@
+# vim:ft=ansible:
+---
+
+- name: installs unzip and java
+  apt: name={{ item }} state=latest update_cache=yes cache_valid_time=604800
+  with_items:
+    - unzip
+    - openjdk-7-jdk
+    - openjdk-7-jre
+
+- name: creates the glassfish group
+  group: name={{ gfgroup }} state=present
+
+- name: creates the glassfish user
+  user: "name={{ gfuser }} groups='{{ gfgroup }},sudo' state=present system=true append=yes"
+
+- name: unzips GlassFish package
+  # unarchive: "src=glassfish-4.1.zip dest=/opt owner={{ gfuser }} group={{ gfgroup }} creates=/opt/glassfish4/README.txt copy=yes"
+  unarchive: >
+    src=glassfish-4.1.zip
+    dest=/opt
+    owner="{{ gfuser }}"
+    group="{{ gfgroup }}"
+    copy=yes
+    creates=/opt/glassfish4/README.txt
+
+# - name: modify path for GlassFish
+#   lineinfile: "dest={{ gfuser_home }}/.profile line='export PATH=/opt/glassfish4/bin:$PATH'"
+
+- name: Stage hello.war for deploy test
+  copy: "src=hello.war dest={{ gfuser_home }}/hello.war owner=glassfish group=glassfish force=no"
+
+- name: Generate temporary GlassFish Admin pw file
+  template: "src=asadmin-passwords-tmp.txt.j2 dest={{ gf_tmp_pwfile }} owner={{ gfuser }} group={{ gfgroup }}"
+
+- name: Generate GlassFish Admin passwords file
+  template: "src=asadmin-passwords.txt.j2 dest={{ gf_pwfile }} owner={{ gfuser }} group={{ gfgroup }} mode=0644"
+
+- name: Stage GlassFish Config File
+  template: src=glassfish.sh.j2 dest=/tmp/glassfish-config.sh mode=0755
+
+- name: Run GlassFish Config File
+  command: /tmp/glassfish-config.sh creates=/etc/init.d/GlassFish_domain1
+
+- name: Create GlassFish Service
+  command: "{{ gf_admin_cmd }} create-service creates=/etc/init.d/GlassFish_domain1"
+
+- name: Start GlassFish Service
+  service: name=GlassFish_domain1 state=started

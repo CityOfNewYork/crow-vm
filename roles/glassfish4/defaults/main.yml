@@ -1,0 +1,16 @@
+---
+
+gf_home: /opt/glassfish4
+gf_bin: "{{ gf_home }}/bin"
+gf_pwfile: "{{ gf_bin }}/passwords.txt"
+gf_tmp_pwfile: /tmp/passwords.txt
+
+gf_admin_cmd: "{{ gf_bin }}/asadmin"
+gf_admin_credentials: "--passwordfile {{ gf_pwfile }} --user admin"
+gf_admin_password: admin
+
+gf_demo_app: /home/glassfish/hello.war
+
+gfuser: glassfish
+gfgroup: "{{ gfuser }}"
+gfuser_home: "/home/{{ gfuser }}"

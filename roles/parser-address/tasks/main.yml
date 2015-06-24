@@ -1,0 +1,57 @@
+---
+# tasks file for parser-address
+#
+- name: Install virtualenv
+  pip: name=virtualenv version=13.0.3
+
+- name: Create parser directory
+  file: path="{{ home_parsers }}"
+        state=directory
+        mode=0755
+        owner="{{ user }}"
+        group="{{ user }}"
+
+- name: Pull source from github
+  git: repo="{{ project_url }}"
+       dest="{{ home_parsers }}/{{ parser_name }}"
+
+- name: Switch to development
+  command: "git checkout development chdir={{ home_parsers }}/{{ parser_name }}"
+
+- name: Make virtual environment
+  command: "/usr/local/bin/virtualenv env_{{ parser_name }} chdir={{ home_parsers }}/{{ parser_name }}"
+
+- name: Pip dependencies
+  pip: virtualenv="{{ home_parsers }}/{{ parser_name }}/env_{{ parser_name }}"
+       requirements="{{ home_parsers }}/{{ parser_name }}/requirements.txt"
+
+- name: Pip uwsgi dependencies
+  pip: name=uwsgi
+       virtualenv="{{ home_parsers }}/{{ parser_name }}/env_{{ parser_name }}"
+
+# mode=0775
+- name: Set permissions
+  file: path="{{ home_parsers }}/{{ parser_name }}"
+        state=directory
+        recurse=yes
+        owner="{{ user }}"
+        group="{{ user }}"
+
+- name: Stage WSGI
+  template: src=etc.init.addressparser.conf.j2
+            dest=/etc/init/addressparser.conf
+            owner=root group=root
+
+- name: Stage nginx
+  template: src=etc.nginx.sites-available.addressparser.j2
+            dest=/etc/nginx/sites-available/addressparser
+            owner=root group=root
+
+- name: Link nginx
+  command: ln -s /etc/nginx/sites-available/addressparser /etc/nginx/sites-enabled
+
+- name: Start addressParser uWSGI
+  command: /sbin/start addressparser
+
+- name: Start nginx
+  command: /usr/sbin/service nginx restart

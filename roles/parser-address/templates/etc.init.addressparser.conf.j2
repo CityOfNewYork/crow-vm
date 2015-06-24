@@ -1,0 +1,14 @@
+description "uWSGI server instance configured to serve addressparser"
+
+start on runlevel[2345]
+stop on runlevel[!2345]
+
+setuid vagrant
+setgid www-data
+
+env PATH={{ home_parsers }}/{{ parser_name }}/env_{{ parser_name }}/bin
+env DOITT_CROL_APP_ID={{ nyc_app_id }}
+env DOITT_CROL_APP_KEY={{ nyc_app_key }}
+
+chdir {{ home_parsers }}/{{ parser_name }}
+exec uwsgi --ini {{ parser_name }}.ini
